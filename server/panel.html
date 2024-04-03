@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel</title>
+    <style>
+        :root {
+            --percentage-filled: rgb(84, 13, 131);
+
+            --background: #202020;
+            --box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+
+            --text-bright: #fff;
+            --text-dark: #8d8d8d;
+        }
+
+        * {
+            user-select: none;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: var(--background);
+        }
+
+        #panel-body {
+            gap: 20px;
+            width: 100%;
+            height: 100%;
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: var(--box-shadow);
+
+            display: flex;
+            align-items: center;
+            justify-content: start;
+            flex-direction: column;
+        }
+
+        #add-link-panel {
+            width: 100%;
+            height: 120px;
+            border-radius: 15px;
+            box-shadow: var(--box-shadow);
+            transition: background .6s;
+
+            display: flex;
+            align-items: center;
+            justify-content: start;
+            padding: 10px 20px;
+        }
+
+        #add-link-panel > div:not(#add-options) {
+            flex-grow: 1;
+            gap: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: start;
+            flex-direction: column;
+        }
+
+        #add-link-input, #add-output-input {
+            width: 100%;
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 20px;
+            padding: 0 10px;
+            border-radius: 15px;
+            background: transparent;
+            color: #fff;
+        }
+
+        #add-options {
+            display: flex;
+            width: min-content;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-around;
+            padding: 10px;
+            height: 100%;
+        }
+
+        #source-selector {
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text-bright);
+            position: relative;
+        }
+
+        #source-options {
+            position: absolute;
+            top: 0;
+            left: 0;
+            transform: translate(calc(-100% - 20px), 0);
+
+            display: flex;
+            align-items: center;
+            justify-content: start;
+            flex-direction: column;
+
+
+            background: var(--background);
+            box-shadow: var(--box-shadow);
+            padding: 10px;
+            gap: 10px;
+            border-radius: 15px;
+        }
+
+        #source-options:not(.shown) {
+            display: none;
+        }
+
+        #source-options > * {
+            width: 150px;
+            height: 60px;
+            font-size: 22px;
+            border-radius: 10px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 300ms ease;
+        }
+
+        #source-options > *:hover {
+            background: #0000001e;
+        }
+
+        #selected-option:hover {
+            color: var(--text-dark);
+        }
+
+        #selected-option {
+            cursor: pointer;
+            transition: 300ms ease;
+        }
+        
+        #add-link-button {
+            border: none;
+            outline: none;
+            font-size: 20px;
+            padding: 5px 20px;
+            border-radius: 15px;
+            background: transparent;
+            color: #fff;
+            cursor: pointer;
+            transition: 300ms ease;
+        }
+
+        #add-link-button:hover {
+            background: #0000001e;
+        }
+
+        #add-link-button:active {
+            background: #0000003b;
+        }
+
+        #queue-panel {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: start;
+            gap: 10px;
+            padding: 10px 20px;
+            overflow-y: scroll;
+        }
+
+        #queue-panel > div {
+            width: 100%;
+            height: 50px;
+            background: transparent;
+            border-radius: 15px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+
+            display: flex;
+            align-items: center;
+            justify-content: start;
+            flex-direction: column;
+            padding: 5px 20px;
+        }
+
+        #queue-panel .header {
+            width: 100%;
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        #queue-panel .header .name {
+            font-size: 20px;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        #queue-panel .header .size {
+            font-size: 15px;
+            color: #fff;
+            display: flex;
+        }
+
+        #queue-panel .url {
+            width: 100%;
+            display: flex;
+            align-items: start;
+            justify-content: center;
+            font-size: 12px;
+            color: #9e9e9e;
+            overflow: hidden;
+        }
+
+        div#queue-panel > div .size > div {
+            height: 20px;
+            width: 20px;
+        }
+
+        div#queue-panel > div .size > div > svg {
+            height: 100%;
+            width: 100%;
+            fill: #fff;
+        }
+
+        ::-webkit-scrollbar-track {
+            margin: 0 12px;
+            background-color: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb,
+        ::-webkit-scrollbar-track {
+            border: 2px solid transparent;
+            background-clip: padding-box;
+            border-radius: 8px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background-color: #555;
+            min-height: 20px;
+        }
+
+        ::-webkit-scrollbar-corner {
+            background-color: transparent;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+    </style>
+    <script>
+        window.global = {};
+        global = window.global;
+        global.current_queue = {};
+        global.selected_source = "bflix";
+
+        window.onload = async function() {
+            global.ws = new WebSocket("ws://127.0.0.1:6950");
+            global.ws.onmessage = function(event) {
+                let data = JSON.parse(event.data);                
+                if (data.action == "list") {
+                    update_queue(data.data);
+
+                } else if (["add", "remove"].includes(data.action)) {
+                    let url_panel = document.getElementById("add-link-panel");
+                    if (data.state == "success") { url_panel.style.background = "#00ff00"; } else { url_panel.style.background = "#ff0000"; }
+                    setTimeout(() => {
+                        url_panel.style.background = "transparent";
+                    }, 3000);                    
+                }
+            }
+
+            global.ws.onopen = function() {
+                global.ws.send(JSON.stringify({
+                    action: "run_updater"
+                }));
+            }
+
+            document.getElementById("selected-option").onclick = () => {
+                let options = document.getElementById("source-options");
+                if (options.classList.contains("shown")) {
+                    options.classList.remove("shown");
+                } else {
+                    options.classList.add("shown");
+                }
+            }
+        }
+
+        function update_queue(data) {
+            function add_tile(data) {
+                let parent = document.createElement("div");
+
+                let header = document.createElement("div");
+
+                let name_div = document.createElement("div");
+                let size_div = document.createElement("div");
+
+                let cancel_button = document.createElement("div");
+                let edit_button = document.createElement("div");
+
+                let cancel_svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                let edit_svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+
+                let cancel_path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                let cancel_path2 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                let edit_path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+
+                let url_div = document.createElement("div");
+
+                let url = entry[0];
+                let name = entry[1].replace("output/", "");
+                let bytes_downloaded = entry[2];
+                let bytes_total = entry[3];
+                let is_chunks = entry[4];
+
+                parent.id = btoa(url);
+                parent.style.background = `linear-gradient(90deg, var(--percentage-filled) ${Math.round(bytes_downloaded / bytes_total * 100)}%, transparent ${Math.round(bytes_downloaded / bytes_total * 100)}%, transparent 100%)`;
+                
+                header.classList.add('header');
+
+                name_div.classList.add('name');
+                size_div.classList.add('size');
+
+                url_div.classList.add('url');
+
+                let precentage_text = "";
+
+                if (bytes_total == 0) {
+                    precentage_text = "unknown - " + convert_size(bytes_downloaded, is_chunks);
+                } else {
+                    precentage_text = Math.round(bytes_downloaded / bytes_total * 100) + "%" + " - " + convert_size(bytes_downloaded, is_chunks) + "/" + convert_size(bytes_total, is_chunks) + "";
+                }
+
+                name_div.innerHTML = name;
+                size_div.innerHTML = precentage_text;
+
+                cancel_button.classList.add('cancel-button');
+                edit_button.classList.add('edit-button');
+
+                cancel_button.setAttribute("onclick", `remove_from_queue("${btoa(url)}")`);
+                edit_button.setAttribute("onclick", `edit_in_queue("${btoa(url)}", "${name}")`);
+
+                cancel_svg.setAttribute("viewBox", "16 16 0 0");
+                edit_svg.setAttribute("viewBox", "16 16 0 0");
+
+                cancel_svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+                edit_svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+
+                cancel_path.setAttribute("d", "M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z");
+                cancel_path2.setAttribute("d", "M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z");
+
+                edit_path.setAttribute("d", "M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z");
+
+                cancel_svg.appendChild(cancel_path);
+                cancel_svg.appendChild(cancel_path2);
+
+                edit_svg.appendChild(edit_path);
+
+                cancel_button.appendChild(cancel_svg);
+                edit_button.appendChild(edit_svg);
+
+                url_div.innerHTML = url;
+
+                size_div.appendChild(cancel_button);
+                size_div.appendChild(edit_button);
+
+                header.appendChild(name_div);
+                header.appendChild(size_div);
+
+                parent.appendChild(header);
+                parent.appendChild(url_div);
+
+                document.getElementById("queue-panel").appendChild(parent);
+            }
+
+            function update_tile(data) {
+                let cancel_button = document.createElement("div");
+                let edit_button = document.createElement("div");
+
+                let cancel_svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                let edit_svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+
+                let cancel_path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                let cancel_path2 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                let edit_path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+
+                let url = data[0];
+                let name = data[1].replace("output/", "");
+                let bytes_downloaded = data[2];
+                let bytes_total = data[3];
+                let is_chunks = data[4];
+
+                let parent = document.getElementById(btoa(url));
+
+                cancel_button.classList.add('cancel-button');
+                edit_button.classList.add('edit-button');
+
+                cancel_button.setAttribute("onclick", `remove_from_queue("${btoa(url)}")`);
+                edit_button.setAttribute("onclick", `edit_in_queue("${btoa(url)}", "${name}")`);
+
+                cancel_svg.setAttribute("viewBox", "16 16 0 0");
+                edit_svg.setAttribute("viewBox", "16 16 0 0");
+
+                cancel_svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+                edit_svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+
+                cancel_path.setAttribute("d", "M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z");
+                cancel_path2.setAttribute("d", "M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z");
+
+                edit_path.setAttribute("d", "M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z");
+
+                let header = parent.children[0];
+                let name_div = header.children[0];
+                let size_div = header.children[1];
+
+                let url_div = parent.children[1];
+
+                parent.style.background = `linear-gradient(90deg, var(--percentage-filled) ${Math.round(bytes_downloaded / bytes_total * 100)}%, transparent ${Math.round(bytes_downloaded / bytes_total * 100)}%, transparent 100%)`;
+
+                let precentage_text = "";
+
+                if (bytes_total == 0) {
+                    precentage_text = "unknown - " + convert_size(bytes_downloaded, (is_chunks !== false));
+                    if (typeof is_chunks == "number") {
+                        precentage_text += " (" + convert_size(is_chunks, false) + ")";
+                    }
+                } else {
+                    precentage_text = Math.round(bytes_downloaded / bytes_total * 100) + "%" + " - " + convert_size(bytes_downloaded, (is_chunks !== false)) + "/" + convert_size(bytes_total, (is_chunks !== false)) + "";
+                    if (typeof is_chunks == "number") {
+                        precentage_text += " (" + convert_size(is_chunks, false) + ")";
+                    }
+                }
+
+                name_div.innerHTML = name;
+                size_div.innerHTML = precentage_text;
+
+                cancel_svg.appendChild(cancel_path);
+                cancel_svg.appendChild(cancel_path2);
+
+                edit_svg.appendChild(edit_path);
+
+                cancel_button.appendChild(cancel_svg);
+                edit_button.appendChild(edit_svg);
+
+                size_div.appendChild(cancel_button);
+                size_div.appendChild(edit_button);
+
+                url_div.innerHTML = url;
+            }
+
+            for (entry of data) {
+                if (!Object.keys(global.current_queue).includes(btoa(entry[0]))) {
+                    add_tile(entry);
+                } else if (global.current_queue[btoa(entry[0])] != [entry[1], entry[2], entry[3], entry[4]]) {
+                    update_tile(entry);
+                }
+
+                global.current_queue[btoa(entry[0])] = [entry[1], entry[2], entry[3], entry[4]];
+            }
+        }
+
+        function convert_size(bytes, is_chunks = false) {
+            if (is_chunks) {
+                return bytes + " chunks";
+            }
+            let sizes = ["B", "KB", "MB", "GB", "TB"];
+            let i = 0;
+            while (bytes > 1024) {
+                bytes /= 1024;
+                i++;
+            }
+            return Math.round(bytes * 100) / 100 + sizes[i];
+        }
+
+        async function add() {
+            let url = document.getElementById("add-link-input").value;
+            let output = document.getElementById("add-output-input").value;
+            if (url == "") return;
+            if (output == "") output = null;
+
+            global.ws.send(JSON.stringify({
+                action: "add",
+                data: {
+                    source: global.selected_source,
+                    url: url,
+                    output: output   
+                }
+            }));
+
+            setTimeout(() => {
+                document.getElementById("add-link-input").value = "";
+            }, 3000);
+        }
+
+        function remove_from_queue(url) {
+            global.ws.send(JSON.stringify({
+                action: "remove",
+                data: {
+                    url: url
+                }
+            }));
+        }
+
+        function edit_in_queue(url, output) {
+            global.ws.send(JSON.stringify({
+                action: "remove",
+                data: {
+                    url: url
+                }
+            }));
+
+            document.getElementById("add-link-input").value = url;
+            document.getElementById("add-output-input").value = output;
+        }
+    
+        function select_source(element) {
+            for (te of document.getElementById("source-options").children) {
+                te.classList.remove("selected");
+            }
+
+            element.classList.add("selected");
+
+            global.selected_source = element.id.split("-")[1];
+        }
+    </script>
+</head>
+<body>
+    <div id="panel-body">
+        <div id="add-link-panel">
+            <div>
+                <input id="add-output-input" placeholder="Ouput name [output]"></input>
+                <input id="add-link-input" placeholder="Base url"></input>
+            </div>
+            <div id="add-options">
+                <div id="source-selector">
+                    <div id="selected-option">BFlix</div>
+                    <div id="source-options">
+                        <div id="source-bflix" class="selected" onclick="select_source(this)">BFlix</div>
+                        <div id="source-cda" onclick="select_source(this)">CDA</div>
+                    </div>
+                </div>
+                <button id="add-link-button" onclick="add()">Add</button>
+            </div>
+        </div>
+        <div id="queue-panel">
+
+        </div>
+    </div>
+</body>
+</html>
